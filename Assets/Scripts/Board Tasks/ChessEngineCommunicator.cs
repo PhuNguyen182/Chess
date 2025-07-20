@@ -4,8 +4,8 @@ using UnityEngine;
 using System.Diagnostics;
 using MessageBrokers;
 using Chess.Scripts.Messages;
-using PimDeWitte.UnityMainThreadDispatcher;
 using System.Text;
+using Cysharp.Threading.Tasks;
 
 namespace Chess.Scripts.BoardTasks
 {
@@ -77,23 +77,19 @@ namespace Chess.Scripts.BoardTasks
 
         public static void OutputReceived(object sender, DataReceivedEventArgs e)
         {
-            // Because the Process.OutputDataReceived event doesn't run on Unity main thread,
-            // so use this UnityMainThreadDispatcher in order to force this event works on main thead
-            UnityMainThreadDispatcher.Instance().Enqueue(() =>
-            {
-                string output = e.Data;
-                
-                if (string.CompareOrdinal(output, "readyok") == 0)
-                    _hasReady = true;
+            UniTask.SwitchToMainThread();
+            string output = e.Data;
 
-                if (output.Contains("bestmove"))
+            if (string.CompareOrdinal(output, "readyok") == 0)
+                _hasReady = true;
+
+            if (output.Contains("bestmove"))
+            {
+                MessageBroker.Default.Publish(new BestMoveMessage
                 {
-                    MessageBroker.Default.Publish(new BestMoveMessage
-                    {
-                        BestMove = output
-                    });
-                }
-            });
+                    BestMove = output
+                });
+            }
         }
 
         public static void Stop()
