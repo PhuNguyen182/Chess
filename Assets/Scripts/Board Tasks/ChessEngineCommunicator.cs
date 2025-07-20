@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using System.Diagnostics;
 using MessageBrokers;
 using Chess.Scripts.Messages;
@@ -11,7 +8,7 @@ namespace Chess.Scripts.BoardTasks
 {
     public static class ChessEngineCommunicator
     {
-        private static bool _hasReady = false;
+        private static bool _hasReady;
         private static Process _process;
         private static string _filepath;
 
@@ -69,13 +66,13 @@ namespace Chess.Scripts.BoardTasks
             }
         }
 
-        public static void SendMessage(string message)
+        private static void SendMessage(string message)
         {
             _process.StandardInput.WriteLine(message);
             _process.StandardInput.Flush();
         }
 
-        public static void OutputReceived(object sender, DataReceivedEventArgs e)
+        private static void OutputReceived(object sender, DataReceivedEventArgs e)
         {
             UniTask.SwitchToMainThread();
             string output = e.Data;
